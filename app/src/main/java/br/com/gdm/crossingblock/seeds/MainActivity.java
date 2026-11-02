@@ -52,6 +52,7 @@ public final class MainActivity extends ComponentActivity {
     private BarcodeScanner scanner;
     private final NumberFormat numberFormat=NumberFormat.getNumberInstance(new Locale("pt","BR"));
     private boolean destroyed=false;
+    private int dialogCount=0;
 
     private final ActivityResultLauncher<String> cameraPermission=registerForActivityResult(new ActivityResultContracts.RequestPermission(),granted->{if(granted)startCamera();else cameraFailure("Permita o uso da câmera para ler QR Codes. Toque em Reler para tentar novamente.");});
     private final ActivityResultLauncher<Intent> filePicker=registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),result->{
@@ -157,7 +158,7 @@ public final class MainActivity extends ComponentActivity {
     private LinearLayout dialogBody(){LinearLayout b=vertical();b.setPadding(dp(22),dp(10),dp(22),dp(18));return b;}
     private TextView caption(String value){TextView t=text(value,12,MUTED);t.setPadding(0,dp(5),0,dp(10));return t;}
     private void action(LinearLayout body,String label,Runnable click){Button b=button(label,SOFT,NAVY);LinearLayout.LayoutParams p=lp(-1,48);p.bottomMargin=dp(8);body.addView(b,p);b.setOnClickListener(v->click.run());}
-    private AlertDialog showDialog(String title,LinearLayout body){AlertDialog d=new AlertDialog.Builder(this).setTitle(title).setView(body).setNegativeButton("Fechar",null).create();modalOpen=true;d.setOnDismissListener(v->modalOpen=false);d.show();d.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(NAVY);return d;}
+    private AlertDialog showDialog(String title,LinearLayout body){AlertDialog d=new AlertDialog.Builder(this).setTitle(title).setView(body).setNegativeButton("Fechar",null).create();dialogCount++;modalOpen=true;d.setOnDismissListener(v->{dialogCount=Math.max(0,dialogCount-1);modalOpen=dialogCount>0;});d.show();d.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(NAVY);return d;}
     private void showImportDialog(){
         LinearLayout body=dialogBody();body.addView(caption("Importação opcional. Você pode registrar sementes sem planilha."));
         body.addView(caption(base==null?"Nenhuma base importada":getPreferences(0).getString("baseName","Base importada")+" · "+base.rows.size()+" espigas"));
@@ -174,7 +175,7 @@ public final class MainActivity extends ComponentActivity {
         d[0]=showDialog("Exportar Excel",body);
     }
     private void confirmClear(){int count=store.all().size();dialog("Limpar dados coletados?","Serão apagadas todas as "+count+" contagens e suas datas do aplicativo. Esta ação não pode ser desfeita. A base importada e os arquivos Excel já salvos serão preservados.","Apagar contagens",()->{try{store.clear();currentQr="";digits="";scanning=true;refresh();message.setText("Dados coletados apagados.");}catch(Exception e){showError("Não foi possível apagar os dados.");}});}
-    private void dialog(String title,String msg,String positive,Runnable action){modalOpen=true;AlertDialog d=new AlertDialog.Builder(this).setTitle(title).setMessage(msg).setNegativeButton("Cancelar",null).setPositiveButton(positive,(v,w)->action.run()).create();d.setOnDismissListener(v->modalOpen=false);d.show();d.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(NAVY);d.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(NAVY);}
+    private void dialog(String title,String msg,String positive,Runnable action){dialogCount++;modalOpen=true;AlertDialog d=new AlertDialog.Builder(this).setTitle(title).setMessage(msg).setNegativeButton("Cancelar",null).setPositiveButton(positive,(v,w)->action.run()).create();d.setOnDismissListener(v->{dialogCount=Math.max(0,dialogCount-1);modalOpen=dialogCount>0;});d.show();d.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(NAVY);d.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(NAVY);}
     private void pick(String op,boolean cloud){
         if(!op.equals("import")&&store.all().isEmpty()){showError("Nenhum registro coletado para exportar.");return;}
         Intent intent=new Intent(op.equals("new")?Intent.ACTION_CREATE_DOCUMENT:Intent.ACTION_OPEN_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType(ExcelFile.MIME);intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);if(!op.equals("import"))intent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION);

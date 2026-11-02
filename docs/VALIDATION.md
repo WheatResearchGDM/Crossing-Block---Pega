@@ -1,4 +1,4 @@
-# Verificação da versão 1.0.0
+# Verificação da versão 1.0.1
 
 - `testDebugUnitTest`: nove testes, sem falhas ou erros.
 - `lintDebug`: concluído sem erros. Há avisos de internacionalização, versões de dependências e APIs obsoletas.
