@@ -1,14 +1,16 @@
-# Verificação da versão 1.0.1
+# Verificação da versão 1.0.2
 
-- `testDebugUnitTest`: nove testes, sem falhas ou erros.
+- `testDebugUnitTest`: 17 testes aprovados — 11 de dados e 6 da árvore real de interface com Robolectric.
 - `lintDebug`: concluído sem erros. Há avisos de internacionalização, versões de dependências e APIs obsoletas.
 - `assembleDebug`: APK gerado e assinado com a chave de desenvolvimento local.
 - `apksigner verify`: assinatura APK v2 válida.
 - `zipalign -c -P 16 4`: alinhamento do APK aprovado.
 - Os dois modelos fornecidos foram lidos, com 2.299 espigas em cada um. Datas e os cruzamentos direto/inverso foram conferidos.
-- Uma exportação com os modelos e um QR Code desconhecido resultou em 2.300 linhas de dados. Conferidos zero e 99 como números, QR Code com zeros à esquerda como texto, atributos desconhecidos vazios e linhas sem coleta com Pega em branco.
+- Uma exportação com a base de 2.299 espigas, uma coleta conhecida com zero e uma desconhecida com 99 resultou em somente duas linhas de dados. Conferidos os números, QR Code com zeros à esquerda como texto, atributos desconhecidos vazios e ausência de Lot IDs sem coleta.
 - A exportação foi relida por um leitor independente para conferir tipos, datas, cabeçalho fixo e filtro.
 
-Não havia dispositivo Android conectado. Não foram realizados testes em aparelho/emulador da câmera, interface, persistência SQLite e do seletor OneDrive. Antes de usar em uma coleta real, instale o APK e confira: leitura da etiqueta, captura 0/99, fechamento/reabertura do app, contagens e médias, importação, exportação local, exportação no OneDrive e cancelamento/confirmação da limpeza.
+Os testes de layout usam a interface real, sem iniciar a câmera: celulares de 320×480, 360×640, 360×740 e 412×840; tablets de 800×1280 e 1200×1920; modo horizontal de 640×360 até 1920×1200; redimensionamento e área reservada às barras do sistema. Conferem todos os controles dentro da tela, ausência de contêineres de rolagem, crescimento proporcional e duas colunas no modo horizontal. Também verificam que os valores 0/99 não se deslocam após arrastar ou tentar rolar, e que o aviso de QR Code já coletado fica em vermelho dentro da caixa da espiga durante a edição.
+
+Não havia dispositivo Android conectado. Os testes automatizados de interface e SQLite usam Robolectric, sem aparelho/emulador. Câmera e seletor OneDrive ainda precisam ser conferidos em um aparelho. Antes de usar em uma coleta real, confira também a instalação sobre a versão anterior, fechamento/reabertura do app, importação/exportação e cancelamento/confirmação da limpeza.
 
 Os modelos de entrada, os registros utilizados na prévia, ferramentas locais e chaves de assinatura não foram publicados no repositório.

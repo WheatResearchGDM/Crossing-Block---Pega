@@ -40,8 +40,8 @@ public final class MainActivity extends ComponentActivity {
     private AtomicFile baseFile;
     private String currentQr="",digits="",pendingFileOp="";
     private volatile boolean scanning=true,modalOpen=false,busy=false;
-    private TextView todayCount,totalCount,todayMean,totalMean,status,message,earName,mother,father;
-    private EditText seedInput;
+    private TextView todayCount,totalCount,todayMean,totalMean,status,message,earName,mother,father,duplicateNotice;
+    private SeedCountView seedInput;
     private LinearLayout operations,ear,content;
     private final List<Button> keypad=new ArrayList<>();
     private Button saveButton,rereadButton;
@@ -88,28 +88,29 @@ public final class MainActivity extends ComponentActivity {
     private Button button(String label,int fill,int color){Button b=new Button(this);b.setText(label);b.setAllCaps(false);b.setTextSize(14);b.setTextColor(color);b.setTypeface(null,Typeface.NORMAL);b.setPadding(dp(8),0,dp(8),0);b.setMinHeight(0);b.setMinimumHeight(0);b.setMinWidth(0);b.setMinimumWidth(0);b.setBackground(bg(fill,10,fill==Color.WHITE));return b;}
     private void createInterface(){
         LinearLayout root=vertical();root.setBackgroundColor(NAVY);
-        root.setOnApplyWindowInsetsListener((v,insets)->{if(Build.VERSION.SDK_INT>=30){android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars());v.setPadding(bars.left,bars.top,bars.right,bars.bottom);}else{v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());}return insets;});
+
         LinearLayout header=row();header.setPadding(dp(16),dp(8),dp(10),dp(8));
         TextView title=text("Crossing Block - Seeds",16,Color.WHITE);title.setTypeface(null,Typeface.BOLD);header.addView(title,new LinearLayout.LayoutParams(0,dp(48),1));title.setGravity(Gravity.CENTER_VERTICAL);
         header.addView(iconButton(false,"Importar dados",this::showImportDialog),lp(44,48));header.addView(iconButton(true,"Exportar Excel",this::showExportDialog),lp(44,48));root.addView(header,lp(-1,-2));
-        ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(Color.WHITE);content=vertical();content.setPadding(dp(16),dp(12),dp(16),dp(12));scroll.addView(content);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-        LinearLayout summary=row();LinearLayout counts=vertical(),means=vertical();todayCount=text("",12,MUTED);totalCount=text("",12,MUTED);todayMean=text("",12,MUTED);totalMean=text("",12,MUTED);todayMean.setGravity(Gravity.END);totalMean.setGravity(Gravity.END);counts.addView(todayCount);gap(counts,3);counts.addView(totalCount);means.addView(todayMean);gap(means,3);means.addView(totalMean);summary.addView(counts,new LinearLayout.LayoutParams(0,-2,1));summary.addView(means,new LinearLayout.LayoutParams(0,-2,1));content.addView(summary);gap(content,12);
+        LinearLayout body=vertical();body.setBackgroundColor(Color.WHITE);body.setPadding(dp(16),dp(12),dp(16),dp(12));content=vertical();LinearLayout entryPane=vertical();body.addView(content);body.addView(entryPane);root.addView(body,lp(-1,-2));
+        LinearLayout summary=row();LinearLayout counts=vertical(),means=vertical();todayCount=text("",12,MUTED);totalCount=text("",12,MUTED);todayMean=text("",12,MUTED);totalMean=text("",12,MUTED);todayMean.setGravity(Gravity.END);totalMean.setGravity(Gravity.END);counts.addView(todayCount);gap(counts,3);counts.addView(totalCount);means.addView(todayMean);gap(means,3);means.addView(totalMean);summary.addView(counts,new LinearLayout.LayoutParams(0,-2,1));summary.addView(means,new LinearLayout.LayoutParams(0,-2,1));content.addView(summary);gap(content,8);
         LinearLayout cameraRow=row();FrameLayout cameraBox=new FrameLayout(this);cameraBox.setBackground(bg(NAVY,12,false));cameraBox.setClipToOutline(true);
         preview=new PreviewView(this);preview.setImplementationMode(PreviewView.ImplementationMode.COMPATIBLE);preview.setScaleType(PreviewView.ScaleType.FILL_CENTER);cameraBox.addView(preview,new FrameLayout.LayoutParams(-1,-1));
         frozen=new ImageView(this);frozen.setScaleType(ImageView.ScaleType.CENTER_CROP);frozen.setVisibility(View.GONE);cameraBox.addView(frozen,new FrameLayout.LayoutParams(-1,-1));
         cameraBox.addView(new Reticle(this),new FrameLayout.LayoutParams(-1,-1));
         cameraHint=text("Enquadre o QR Code",11,Color.WHITE);cameraHint.setGravity(Gravity.CENTER);cameraHint.setBackgroundColor(0x8809243B);FrameLayout.LayoutParams hintParams=new FrameLayout.LayoutParams(-1,dp(25),Gravity.BOTTOM);cameraBox.addView(cameraHint,hintParams);
-        cameraRow.addView(cameraBox,new LinearLayout.LayoutParams(0,dp(132),1));rereadButton=button("↻\nReler",SOFT,NAVY);rereadButton.setTextSize(12);LinearLayout.LayoutParams rp=lp(56,64);rp.leftMargin=dp(8);cameraRow.addView(rereadButton,rp);rereadButton.setOnClickListener(v->reread());content.addView(cameraRow);
+        cameraRow.addView(cameraBox,new LinearLayout.LayoutParams(0,dp(110),1));rereadButton=button("↻\nReler",SOFT,NAVY);rereadButton.setTextSize(12);LinearLayout.LayoutParams rp=lp(56,64);rp.leftMargin=dp(8);cameraRow.addView(rereadButton,rp);rereadButton.setOnClickListener(v->reread());content.addView(cameraRow);
         status=text("Câmera ativa",11,MUTED);status.setPadding(0,dp(7),0,dp(7));content.addView(status);
         ear=vertical();ear.setPadding(dp(14),dp(10),dp(14),dp(10));ear.setMinimumHeight(dp(90));ear.setBackground(bg(Color.WHITE,12,true));
         LinearLayout parents=row();earName=text("",18,NAVY);earName.setTypeface(null,Typeface.BOLD);parents.addView(earName,new LinearLayout.LayoutParams(0,-2,1));
         LinearLayout fraction=vertical();mother=parentLine(fraction,"Mãe");View rule=new View(this);rule.setBackgroundColor(NAVY);LinearLayout.LayoutParams line=lp(32,1);line.gravity=Gravity.END;fraction.addView(rule,line);father=parentLine(fraction,"Pai");parents.addView(fraction,lp(95,-2));ear.addView(parents);
-        operations=vertical();ear.addView(operations);content.addView(ear,lp(-1,-2));gap(content,10);
-        LinearLayout seedRow=row();TextView seeds=text("Sementes",15,NAVY);seedRow.addView(seeds,new LinearLayout.LayoutParams(0,-2,1));seedInput=new EditText(this);seedInput.setTextSize(28);seedInput.setTextColor(NAVY);seedInput.setGravity(Gravity.CENTER);seedInput.setSingleLine(true);seedInput.setHint("—");seedInput.setShowSoftInputOnFocus(false);seedInput.setKeyListener(null);seedInput.setFocusable(false);seedInput.setBackground(bg(SOFT,9,false));seedInput.setContentDescription("Número de sementes");seedRow.addView(seedInput,lp(88,48));content.addView(seedRow);gap(content,10);
+        duplicateNotice=text("QR Code já coletado",12,Color.rgb(160,45,45));duplicateNotice.setTypeface(null,Typeface.BOLD);duplicateNotice.setPadding(0,dp(8),0,0);duplicateNotice.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);duplicateNotice.setVisibility(View.GONE);ear.addView(duplicateNotice,lp(-1,-2));
+        operations=vertical();ear.addView(operations);content.addView(ear,lp(-1,-2));
+        LinearLayout seedRow=row();TextView seeds=text("Sementes",15,NAVY);seedRow.addView(seeds,new LinearLayout.LayoutParams(0,-2,1));seedInput=new SeedCountView(this);seedInput.setTextColor(NAVY);seedInput.setBackground(bg(SOFT,9,false));seedRow.addView(seedInput,lp(88,48));entryPane.addView(seedRow);gap(entryPane,6);
         String[] keys={"1","2","3","4","5","6","7","8","9","Limpar","0","⌫"};
-        for(int r=0;r<4;r++){LinearLayout keysRow=row();for(int c=0;c<3;c++){String key=keys[r*3+c];Button b=button(key,SOFT,NAVY);b.setTextSize(key.equals("Limpar")?12:23);if(key.equals("⌫"))b.setContentDescription("Apagar último dígito");LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(44),1);if(c>0)p.leftMargin=dp(6);keysRow.addView(b,p);keypad.add(b);b.setOnClickListener(v->type(key));}content.addView(keysRow);if(r<3)gap(content,6);}
-        gap(content,10);saveButton=button("Salvar",LIME,NAVY);saveButton.setTypeface(null,Typeface.BOLD);content.addView(saveButton,lp(-1,48));saveButton.setOnClickListener(v->save());message=text("",11,MUTED);message.setPadding(0,dp(7),0,0);message.setMinHeight(dp(23));message.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);content.addView(message);
-        setContentView(root);root.requestApplyInsets();
+        for(int r=0;r<4;r++){LinearLayout keysRow=row();for(int c=0;c<3;c++){String key=keys[r*3+c];Button b=button(key,SOFT,NAVY);b.setTextSize(key.equals("Limpar")?12:23);if(key.equals("⌫"))b.setContentDescription("Apagar último dígito");LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(0,dp(44),1);if(c>0)p.leftMargin=dp(6);keysRow.addView(b,p);keypad.add(b);b.setOnClickListener(v->type(key));}entryPane.addView(keysRow);if(r<3)gap(entryPane,6);}
+        gap(entryPane,8);saveButton=button("Salvar",LIME,NAVY);saveButton.setTypeface(null,Typeface.BOLD);entryPane.addView(saveButton,lp(-1,48));saveButton.setOnClickListener(v->save());message=text("",11,MUTED);message.setPadding(0,dp(7),0,0);message.setMinHeight(dp(23));message.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);entryPane.addView(message);
+        CaptureViewport viewport=new CaptureViewport(this,root,body,content,entryPane);viewport.setBackgroundColor(NAVY);viewport.setOnApplyWindowInsetsListener((v,insets)->{if(Build.VERSION.SDK_INT>=30){android.graphics.Insets bars=insets.getInsets(WindowInsets.Type.systemBars());v.setPadding(bars.left,bars.top,bars.right,bars.bottom);}else{v.setPadding(insets.getSystemWindowInsetLeft(),insets.getSystemWindowInsetTop(),insets.getSystemWindowInsetRight(),insets.getSystemWindowInsetBottom());}return insets;});setContentView(viewport);viewport.requestApplyInsets();
     }
     private TextView parentLine(LinearLayout column,String label){LinearLayout r=row();TextView name=text(label,11,MUTED),value=text("",24,NAVY);r.addView(name,new LinearLayout.LayoutParams(0,-2,1));value.setGravity(Gravity.CENTER);r.addView(value,lp(34,-2));column.addView(r);return value;}
     private ImageButton iconButton(boolean export,String description,Runnable action){ImageButton b=new ImageButton(this);b.setImageDrawable(new FileIcon(export));b.setBackground(bg(NAVY,8,false));b.setPadding(dp(11),dp(11),dp(11),dp(11));b.setContentDescription(description);b.setTooltipText(description);b.setOnClickListener(v->{if(!busy)action.run();});return b;}
@@ -119,6 +120,7 @@ public final class MainActivity extends ComponentActivity {
         refreshSummary();seedInput.setText(digits);boolean enabled=!scanning&&!currentQr.isEmpty()&&!busy;
         for(Button b:keypad){b.setEnabled(enabled);b.setAlpha(enabled?1f:.4f);}saveButton.setEnabled(enabled);saveButton.setAlpha(enabled?1f:.4f);rereadButton.setEnabled(!busy);
         earName.setText("");mother.setText("");father.setText("");operations.removeAllViews();
+        try{duplicateNotice.setVisibility(!scanning&&!currentQr.isEmpty()&&store.find(currentQr)!=null?View.VISIBLE:View.GONE);}catch(Exception e){duplicateNotice.setVisibility(View.GONE);showError("Não foi possível consultar o histórico da espiga.");}
         boolean found=base!=null&&base.rows.containsKey(currentQr)&&!scanning;
         if(base!=null&&!found&&!scanning&&!currentQr.isEmpty())earName.setText("Sem registro");
         if(found){earName.setText(base.get(currentQr,"Lot_name"));String[] p=base.parents(currentQr);mother.setText(p[0]);father.setText(p[1]);addOperation("Emasculação",base.get(currentQr,"Emasculation date"),base.get(currentQr,"Emasculator1"));addOperation("Polinização",base.get(currentQr,"Pollination date"),base.get(currentQr,"Pollinator"));}
@@ -142,7 +144,7 @@ public final class MainActivity extends ComponentActivity {
         String qr=raw.trim();if(qr.isEmpty()||qr.length()>2048){showError("QR Code vazio ou muito longo.");return;}
         scanning=false;currentQr=qr;
         Bitmap snapshot=preview.getBitmap();if(snapshot!=null){frozen.setImageBitmap(snapshot);frozen.setVisibility(View.VISIBLE);}
-        try{SeedRecord previous=store.find(qr);digits=previous==null?"":Integer.toString(previous.seeds);message.setTextColor(MUTED);message.setText(previous==null?"":"Já coletado. Salvar atualizará a contagem.");refresh();}catch(Exception e){showError("Falha ao consultar o histórico.");}
+        try{SeedRecord previous=store.find(qr);digits=previous==null?"":Integer.toString(previous.seeds);message.setTextColor(MUTED);message.setText("");refresh();}catch(Exception e){showError("Falha ao consultar o histórico.");}
     }
     private void ensureCameraPermission(){if(ContextCompat.checkSelfPermission(this,Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED){if(provider==null)startCamera();}else cameraPermission.launch(Manifest.permission.CAMERA);}
     private void cameraFailure(String s){cameraHint.setText("Câmera indisponível");status.setText(s);}
@@ -207,7 +209,7 @@ public final class MainActivity extends ComponentActivity {
     private final class Reticle extends View {
         private final Paint paint=new Paint(Paint.ANTI_ALIAS_FLAG);
         Reticle(Context c){super(c);setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);}
-        @Override protected void onDraw(Canvas canvas){float side=dp(76),x=(getWidth()-side)/2,y=(getHeight()-side)/2,corner=dp(18);paint.setColor(LIME);paint.setStrokeWidth(dp(2));for(int a=0;a<2;a++)for(int b=0;b<2;b++){float px=x+a*side,py=y+b*side;canvas.drawLine(px,py,px+(a==0?corner:-corner),py,paint);canvas.drawLine(px,py,px,py+(b==0?corner:-corner),paint);}}
+        @Override protected void onDraw(Canvas canvas){float side=Math.min(dp(76),Math.max(0,getWidth()-dp(16))),x=(getWidth()-side)/2,y=(getHeight()-side)/2,corner=dp(18);paint.setColor(LIME);paint.setStrokeWidth(dp(2));for(int a=0;a<2;a++)for(int b=0;b<2;b++){float px=x+a*side,py=y+b*side;canvas.drawLine(px,py,px+(a==0?corner:-corner),py,paint);canvas.drawLine(px,py,px,py+(b==0?corner:-corner),paint);}}
     }
     private static final class FileIcon extends Drawable {
         private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG);private final boolean export;

@@ -31,25 +31,33 @@ public final class Workbook {
         return new String[]{mother,father};
     }
     private static void addHeader(Workbook out,String h){if(out.column(h)<0)out.headers.add(h);}
-    private static void copyInto(Workbook out,Workbook source){
-        if(source==null)return;
-        for(String h:source.headers)addHeader(out,h);
-        for(Map.Entry<String,LinkedHashMap<String,Cell>> row:source.rows.entrySet()){
-            LinkedHashMap<String,Cell> dst=out.rows.computeIfAbsent(row.getKey(),key->new LinkedHashMap<>());
-            for(Map.Entry<String,Cell> c:row.getValue().entrySet()){
-                String h=out.headers.get(out.column(c.getKey()));
-                // Existing output counts take precedence over an imported base.
-                if(!dst.containsKey(h)||dst.get(h).value.isEmpty())dst.put(h,c.getValue());
-            }
+    private static void copyRow(Workbook out,String qr,Map<String,Cell> values){
+        if(values==null)return;
+        LinkedHashMap<String,Cell> dst=out.rows.computeIfAbsent(qr,key->new LinkedHashMap<>());
+        for(Map.Entry<String,Cell> c:values.entrySet()){
+            addHeader(out,c.getKey());String h=out.headers.get(out.column(c.getKey()));
+            if(!dst.containsKey(h)||dst.get(h).value.isEmpty())dst.put(h,c.getValue());
         }
     }
     public static Workbook export(Workbook base, Workbook existing,List<SeedRecord> records){
         Workbook out=new Workbook();
-        if(existing!=null)copyInto(out,existing);
-        if(base!=null)copyInto(out,base);
+        if(existing!=null)for(String h:existing.headers)addHeader(out,h);
+        if(base!=null)for(String h:base.headers)addHeader(out,h);
         if(out.headers.isEmpty())out.headers.addAll(STANDARD);
         addHeader(out,ID);addHeader(out,SEEDS);addHeader(out,TIME);addHeader(out,UPDATED);
+        if(existing!=null)for(String qr:existing.rows.keySet()){
+            String saved=existing.get(qr,SEEDS).trim();
+            if(saved.isEmpty())continue;
+            int count;
+            try{count=Integer.parseInt(saved);if(count<0||count>99)throw new NumberFormatException();}
+            catch(NumberFormatException e){throw new IllegalArgumentException("Pega inválida no arquivo de saída para Lot ID "+qr+".");}
+            copyRow(out,qr,existing.rows.get(qr));
+            out.rows.get(qr).put(out.headers.get(out.column(SEEDS)),new Cell(Integer.toString(count),true,false));
+        }
         for(SeedRecord r:records){
+            // A base supplies attributes for collected IDs only; it never creates output rows.
+            if(existing!=null)copyRow(out,r.qr,existing.rows.get(r.qr));
+            if(base!=null)copyRow(out,r.qr,base.rows.get(r.qr));
             LinkedHashMap<String,Cell> row=out.rows.computeIfAbsent(r.qr,key->new LinkedHashMap<>());
             for(Map.Entry<String,Cell> attr:r.attributes.entrySet()){addHeader(out,attr.getKey());row.put(out.headers.get(out.column(attr.getKey())),attr.getValue());}
             row.put(out.headers.get(out.column(ID)),Cell.text(r.qr));

@@ -18,6 +18,10 @@ A importação é opcional. Sem base importada, os atributos da espiga ficam em 
 
 O resumo exibe a quantidade e a média de sementes do dia e de todo o histórico. As contagens zero participam das médias; espigas ainda não coletadas não participam. O dia é determinado pelo horário de Brasília (`America/Sao_Paulo`).
 
+A tela de coleta não possui rolagem. O conjunto de controles se ajusta proporcionalmente à área útil, cresce em tablets e utiliza duas colunas no modo horizontal. O número de sementes é uma exibição fixa, alterada apenas pelo teclado do aplicativo; arrastar sobre ele não move o valor.
+
+Ao ler um QR Code já coletado, o aviso **QR Code já coletado** aparece em vermelho dentro da caixa de informações da espiga e permanece durante a edição. Salvar atualiza a contagem do mesmo QR Code, sem criar uma segunda linha.
+
 ## Planilha de entrada
 
 Aceita `.xlsx`, com uma única aba e até 100.000 linhas e 256 colunas. A primeira linha não vazia deve conter cabeçalhos, incluindo **Lot ID**. IDs duplicados ou linhas com dados e sem ID são recusados para evitar uma associação ambígua. Arquivos `.xls` antigos devem ser convertidos para `.xlsx` no Excel.
@@ -49,9 +53,9 @@ A saída contém as colunas da base e:
 
 Exemplo de horário: `01/11/2026 23:14:54 -03:00`. O horário utiliza o relógio do aparelho. Ler novamente um QR Code já coletado permite corrigir a contagem, preservando a data da coleta original. Há um registro por QR Code; correções não duplicam a espiga nem o total.
 
-Cada exportação inclui o histórico de **todos os dias**, inclusive QR Codes sem cadastro e as linhas da base ainda sem coleta, cujo campo Pega permanece vazio. Sem base, exporta as linhas efetivamente coletadas com seus QR Codes, sementes e horários.
+Cada exportação inclui **somente os Lot IDs com contagem salva**, de **todos os dias**, inclusive contagens zero e QR Codes sem cadastro na base. Linhas da base sem coleta não são exportadas. Sem base, os atributos da espiga permanecem vazios, mantendo QR Code, sementes e horários.
 
-Ao atualizar um arquivo existente, o aplicativo exige uma única aba com **Lot ID** e **Pega**, mantém os outros IDs e mescla os registros locais. Para o mesmo QR Code, a contagem local prevalece, após confirmação. Se detectar uma alteração no arquivo entre a seleção e a confirmação, pede uma nova seleção. A base de entrada não é utilizada como destino de atualização.
+Ao atualizar um arquivo existente, o aplicativo exige uma única aba com **Lot ID** e **Pega**, mantém os outros IDs com contagem preenchida e mescla os registros locais. Linhas sem contagem no arquivo de destino são omitidas. Para o mesmo QR Code, a contagem local prevalece, após confirmação. Se detectar uma alteração no arquivo entre a seleção e a confirmação, pede uma nova seleção. A base de entrada não é utilizada como destino de atualização.
 
 O arquivo de saída é uma tabela de valores com cabeçalho fixo e filtro. A atualização regrava essa tabela: fórmulas, gráficos e formatação personalizada do arquivo de destino não são preservados. Use **Salvar novo arquivo** para manter o original.
 
@@ -81,6 +85,6 @@ O workflow `.github/workflows/android.yml` executa os testes, lint e compilaçã
 
 ## Verificação
 
-Os testes de unidade cobrem sentidos direto/inverso, QR Codes sem cadastro, zeros à esquerda, contagens 0/99, consolidação de dias, médias, conservação dos atributos históricos, mesclagem de arquivos, datas e rejeição de IDs duplicados. O script `scripts/VerifyModels.java` permite validar os modelos fornecidos sem incluí-los no repositório.
+Os testes cobrem sentidos direto/inverso, QR Codes sem cadastro, zeros à esquerda, contagens 0/99, consolidação de dias, médias, conservação dos atributos históricos, exportação somente dos coletados, mesclagem de arquivos, datas e rejeição de IDs duplicados. Os testes de interface com Robolectric medem a árvore real de controles em celulares e tablets, verificam a ausência de rolagem, o número fixo e o aviso em vermelho dentro da caixa da espiga. O script `scripts/VerifyModels.java` permite validar os modelos fornecidos sem incluí-los no repositório.
 
 Referências técnicas: [CameraX](https://developer.android.com/jetpack/androidx/releases/camera), [ML Kit](https://developers.google.com/ml-kit/vision/barcode-scanning/android), [seletor de documentos Android](https://developer.android.com/training/data-storage/shared/documents-files).

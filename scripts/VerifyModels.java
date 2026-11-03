@@ -16,9 +16,9 @@ public class VerifyModels {
         Workbook out=Workbook.export(input,null,Arrays.asList(known,unknown));
         byte[] bytes=ExcelFile.write(out);Files.write(Path.of(args[2]),bytes);
         Workbook check=ExcelFile.read(new java.io.ByteArrayInputStream(bytes));
-        if(check.rows.size()!=2300||!check.get("303283","Pega").equals("0")||!check.get("000999999","Pega").equals("99"))throw new AssertionError("Output reconciliation");
-        if(!check.get("303284","Pega").isEmpty())throw new AssertionError("Uncollected row became zero");
+        if(check.rows.size()!=2||!check.get("303283","Pega").equals("0")||!check.get("000999999","Pega").equals("99"))throw new AssertionError("Output reconciliation");
+        if(check.rows.containsKey("303284"))throw new AssertionError("Uncollected row was exported");
         if(!check.get("000999999","Female origin").isEmpty())throw new AssertionError("Unknown QR has invented parents");
-        System.out.println("PASS: 2,299 source rows, direct/inverse, dates, typed 0/99, unknown QR, 2,300 exported rows.");
+        System.out.println("PASS: 2,299 source rows, direct/inverse, dates, typed 0/99, unknown QR, only the 2 collected IDs exported.");
     }
 }

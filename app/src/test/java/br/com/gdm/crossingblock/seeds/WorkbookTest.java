@@ -18,11 +18,13 @@ public class WorkbookTest {
         Workbook loaded=ExcelFile.read(new ByteArrayInputStream(ExcelFile.write(output)));
         assertEquals(2,loaded.rows.size());assertEquals("0",loaded.get("000123","Pega"));assertEquals("",loaded.get("000123","Female origin"));assertEquals("01/11/2026 23:14:54 -03:00",loaded.get("000123",Workbook.TIME));assertEquals("99",loaded.get("999999","Pega"));assertTrue(loaded.rows.get("000123").get("Pega").number);assertFalse(loaded.rows.get("000123").get("Lot ID").number);
     }
-    @Test public void unknownQrExportsAlongsideBaseAndUncollectedRows()throws Exception{
-        Workbook b=base();row(b,"1","3","4","");row(b,"2","6","10","Inverso");Workbook output=Workbook.export(b,null,List.of(record("unknown",5,"2026-11-02T03:00:00Z")));
+    @Test public void exportIncludesCollectedZeroAndUnknownQrButExcludesUncollectedBaseRows()throws Exception{
+        Workbook b=base();row(b,"1","3","4","");row(b,"2","6","10","Inverso");Workbook output=Workbook.export(b,null,List.of(record("1",0,"2026-11-01T03:00:00Z"),record("unknown",5,"2026-11-02T03:00:00Z")));
         Workbook loaded=ExcelFile.read(new ByteArrayInputStream(ExcelFile.write(output)));
-        assertEquals(3,loaded.rows.size());assertEquals("",loaded.get("1","Pega"));assertEquals("5",loaded.get("unknown","Pega"));assertEquals("",loaded.get("unknown","Female origin"));
+        assertEquals(2,loaded.rows.size());assertEquals("0",loaded.get("1","Pega"));assertEquals("3",loaded.get("1","Female origin"));assertFalse(loaded.rows.containsKey("2"));assertEquals("5",loaded.get("unknown","Pega"));assertEquals("",loaded.get("unknown","Female origin"));
     }
+    @Test public void mergingOldOutputOmitsBlankRowsAndKeepsCollectedZero(){Workbook old=base();old.headers.add(Workbook.SEEDS);row(old,"empty","3","4","");row(old,"zero","6","10","");old.rows.get("zero").put(Workbook.SEEDS,Workbook.Cell.text("0"));Workbook output=Workbook.export(base(),old,List.of(record("new",2,"2026-11-02T03:00:00Z")));assertEquals(2,output.rows.size());assertFalse(output.rows.containsKey("empty"));assertEquals("0",output.get("zero",Workbook.SEEDS));}
+    @Test public void loadedBaseDoesNotCountAsCollectedHistory(){Workbook b=base();row(b,"not-collected","3","4","");assertTrue(Workbook.export(b,null,List.of()).rows.isEmpty());}
     @Test public void allDaysAndZeroCountsContributeToRightSummary(){
         List<SeedRecord> records=Arrays.asList(record("a",0,"2026-11-02T02:59:59Z"),record("b",10,"2026-11-02T03:00:00Z"),record("c",20,"2026-11-02T04:00:00Z"));Summary s=new Summary(records,LocalDate.of(2026,11,2));assertEquals(2,s.todayCount);assertEquals(3,s.totalCount);assertEquals(15,s.todayMean,0);assertEquals(10,s.totalMean,0);
         Summary empty=new Summary(List.of(),LocalDate.of(2026,11,2));assertTrue(Double.isNaN(empty.todayMean));assertTrue(Double.isNaN(empty.totalMean));
