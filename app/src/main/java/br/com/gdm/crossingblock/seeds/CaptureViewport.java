@@ -25,7 +25,7 @@ public final class CaptureViewport extends ViewGroup {
         if(view instanceof TextView){TextView t=(TextView)view;Object tag=t.getTag();float sp=tag instanceof Number?((Number)tag).floatValue():t.getTextSize()/getResources().getDisplayMetrics().scaledDensity;
             if(!(tag instanceof Number))t.setTag(sp);
             int max=Math.max(1,Math.round(sp*getResources().getDisplayMetrics().scaledDensity*scale));
-            if(t instanceof Button||t instanceof SeedCountView||t.getMaxLines()==2){int min=Math.min(max,dp(t instanceof SeedCountView?16:10));t.setAutoSizeTextTypeUniformWithConfiguration(Math.max(1,min),max,1,TypedValue.COMPLEX_UNIT_PX);}
+            if(t instanceof Button||t instanceof SeedCountView||t.getMaxLines()<=2){int min=Math.min(max,dp(t instanceof SeedCountView?16:t.getMaxLines()==1?8:10));t.setAutoSizeTextTypeUniformWithConfiguration(Math.max(1,min),max,1,TypedValue.COMPLEX_UNIT_PX);}
             else t.setTextSize(TypedValue.COMPLEX_UNIT_PX,max);
         }
         if(view instanceof ViewGroup){ViewGroup g=(ViewGroup)view;for(int i=0;i<g.getChildCount();i++)fonts(g.getChildAt(i));}

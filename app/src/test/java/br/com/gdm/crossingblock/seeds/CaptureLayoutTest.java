@@ -65,6 +65,19 @@ public class CaptureLayoutTest {
         }
     }
     @Test public void systemInsetsLeaveAllControlsInsideUsableWindow(){viewport.setPadding(0,28,0,24);layout(360,640);allControlsVisible();}
+    private void entireTextFitsOneLine(TextView text,String expected){
+        assertEquals(expected,text.getText().toString());assertNotNull(text.getLayout());assertEquals(1,text.getLayout().getLineCount());
+        assertEquals("Every character is laid out",expected.length(),text.getLayout().getLineEnd(0));assertEquals(0,text.getLayout().getEllipsisCount(0));
+        assertTrue("Text width fits",text.getLayout().getLineWidth(0)<=text.getWidth()-text.getCompoundPaddingLeft()-text.getCompoundPaddingRight()+.5f);
+    }
+    @Test public void completeParentNumbersFitWithoutClippingOnPhones(){
+        TextView m=ReflectionHelpers.getField(activity,"mother"),f=ReflectionHelpers.getField(activity,"father");
+        for(String value:new String[]{"349","3499","123456"})for(int[] size:new int[][]{{320,480},{360,740},{412,840},{800,1280}}){m.setText(value);f.setText("7");layout(size[0],size[1]);entireTextFitsOneLine(m,value);entireTextFitsOneLine(f,"7");allControlsVisible();}
+    }
+    @Test @Config(qualifiers="xhdpi") public void phoneDensityKeeps349AndRereadOnOneLine(){
+        TextView m=ReflectionHelpers.getField(activity,"mother"),f=ReflectionHelpers.getField(activity,"father");Button reread=ReflectionHelpers.getField(activity,"rereadButton");m.setText("349");f.setText("7");
+        for(int[] size:new int[][]{{738,1600},{640,1280},{800,1600}}){layout(size[0],size[1]);entireTextFitsOneLine(m,"349");entireTextFitsOneLine(f,"7");entireTextFitsOneLine(reread,"Reler");allControlsVisible();}
+    }
     @Test public void cameraIsSquareAndTabletUsesFullWidthAndLowerArea(){
         for(int[] size:new int[][]{{360,640},{720,1100},{800,1280},{1280,800}}){
             layout(size[0],size[1]);View camera=null;EntryPanel entry=null;

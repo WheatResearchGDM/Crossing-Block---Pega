@@ -1,6 +1,6 @@
-# Verificação da versão 1.0.3
+# Verificação da versão 1.0.4
 
-- `testDebugUnitTest`: 23 testes aprovados — 12 de dados e Excel, 3 de armazenamento/migração e 8 da interface com Robolectric.
+- `testDebugUnitTest`: 25 testes aprovados — 12 de dados e Excel, 3 de armazenamento/migração e 10 da interface com Robolectric.
 - `lintDebug`: concluído sem erros. Há avisos de internacionalização, versões de dependências e APIs obsoletas.
 - `assembleDebug`: APK gerado e assinado com a chave de desenvolvimento local.
 - `apksigner verify`: assinatura APK v2 válida.
@@ -16,3 +16,5 @@ Não havia dispositivo Android conectado. Os testes automatizados de interface e
 Os modelos de entrada, os registros utilizados na prévia, ferramentas locais e chaves de assinatura não foram publicados no repositório.
 
 A migração do banco da versão 1 para a 2 foi testada com registros antigos, incluindo contagem zero, atributos e horários. O campo de comentário é acrescentado sem apagar ou recriar a tabela. A exportação com comentários foi validada por leitor independente, preservando acentos, texto multilinha e a formatação de quebra de linha.
+
+A versão 1.0.4 acrescenta testes de exibição completa dos valores 349, 3499 e 123456 em uma linha. Também verifica 349/7 e o rótulo Reler em telas xhdpi de 738×1600, 640×1280 e 800×1600, sem quebra de linha, reticências ou caracteres cortados.
