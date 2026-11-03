@@ -44,4 +44,11 @@ public class WorkbookTest {
     }
     @Test public void duplicateInputIdsRejected()throws Exception{try{ExcelFile.read(new ByteArrayInputStream(duplicateZip()));fail("Should reject duplicates");}catch(IOException e){assertTrue(e.getMessage().contains("duplicado"));}}
     @Test public void invalidQuantitiesRejected(){for(int n:new int[]{-1,100}){try{record("x",n,"2026-11-02T00:00:00Z");fail();}catch(IllegalArgumentException expected){}}}
+    @Test public void commentsExportAsLiteralMultilineTextAndRemainAssociated()throws Exception{
+        String at="2026-11-02T03:00:00Z",note="=Espiga <boa> & germinação\nSegunda linha.";
+        SeedRecord a=new SeedRecord("0001",0,at,at,Map.of(),note),b=new SeedRecord("0002",99,at,at,Map.of(),"Outra observação");
+        Workbook out=Workbook.export(null,null,List.of(a,b));Workbook loaded=ExcelFile.read(new ByteArrayInputStream(ExcelFile.write(out)));
+        assertEquals(note,loaded.get("0001",Workbook.COMMENT));assertEquals("Outra observação",loaded.get("0002",Workbook.COMMENT));assertFalse(loaded.rows.get("0001").get(Workbook.COMMENT).number);assertEquals(2,loaded.rows.size());
+        Workbook merged=Workbook.export(null,loaded,List.of(new SeedRecord("0001",2,at,at,Map.of(),"")));assertEquals("",merged.get("0001",Workbook.COMMENT));assertEquals("Outra observação",merged.get("0002",Workbook.COMMENT));
+    }
 }

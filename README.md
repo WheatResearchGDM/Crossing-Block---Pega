@@ -11,14 +11,16 @@ Instale o APK disponibilizado em **Releases** ou gerado pelo workflow **Android 
 1. Abra o aplicativo e permita o acesso à câmera.
 2. Opcionalmente, toque no ícone **Importar dados** do cabeçalho e escolha uma planilha `.xlsx` no celular ou no OneDrive.
 3. Enquadre o QR Code. Após a leitura, digite a quantidade de sementes no teclado do aplicativo. Aceita inteiros de 0 a 99, incluindo zero.
-4. Toque em **Salvar**. A contagem é gravada localmente e a leitura da próxima etiqueta é ativada automaticamente.
+4. Se desejar, toque na caixa **Comentário da espiga**, escreva o comentário e toque em **Concluir**. Toque em **Salvar** para gravar contagem e comentário juntos e ativar a leitura da próxima etiqueta.
 5. O ícone **Exportar Excel** permite salvar um novo arquivo ou atualizar um arquivo de saída existente no OneDrive.
 
 A importação é opcional. Sem base importada, os atributos da espiga ficam em branco. Se uma base estiver carregada e o QR Code não existir nela, aparece **Sem registro**. Nos dois casos, a coleta e a exportação são permitidas e associadas ao conteúdo exato do QR Code, sem remover zeros à esquerda.
 
 O resumo exibe a quantidade e a média de sementes do dia e de todo o histórico. As contagens zero participam das médias; espigas ainda não coletadas não participam. O dia é determinado pelo horário de Brasília (`America/Sao_Paulo`).
 
-A tela de coleta não possui rolagem. O conjunto de controles se ajusta proporcionalmente à área útil, cresce em tablets e utiliza duas colunas no modo horizontal. O número de sementes é uma exibição fixa, alterada apenas pelo teclado do aplicativo; arrastar sobre ele não move o valor.
+A tela de coleta não possui rolagem e utiliza toda a área útil. A câmera permanece quadrada, com o botão Reler ao lado. Em pé, dados e comentário ficam à direita da câmera e o teclado ocupa a área inferior. Na horizontal, câmera, informações e teclado ficam lado a lado. O número de sementes é fixo, alterado apenas pelo teclado do aplicativo; arrastar sobre ele não move o valor.
+
+O comentário é opcional e associado ao QR Code da espiga. A caixa mostra uma prévia; ao tocá-la, um editor abre para que o teclado de texto não cubra a contagem. **Concluir** mantém o texto como rascunho, e **Salvar** grava o registro. Ao reler a mesma espiga, seu comentário salvo é carregado. O Excel recebe o texto completo, inclusive quebras de linha. O limite é de 32.767 caracteres, correspondente a uma célula do Excel.
 
 Ao ler um QR Code já coletado, o aviso **QR Code já coletado** aparece em vermelho dentro da caixa de informações da espiga e permanece durante a edição. Salvar atualiza a contagem do mesmo QR Code, sem criar uma segunda linha.
 
@@ -41,13 +43,14 @@ A mãe aparece acima do pai, separados por um traço. O sentido e o Lot ID não 
 
 ## Histórico e exportação
 
-O SQLite local armazena as contagens, os atributos disponíveis no momento da coleta e os horários. Importar uma nova base, fechar o aplicativo, reiniciar o celular ou exportar não apaga esse histórico.
+O SQLite local armazena as contagens, os comentários, os atributos disponíveis no momento da coleta e os horários. A atualização para a versão 1.0.3 acrescenta o campo de comentário sem apagar os registros anteriores. Importar uma nova base, fechar o aplicativo, reiniciar o celular ou exportar não apaga esse histórico.
 
 A saída contém as colunas da base e:
 
 | Coluna | Conteúdo |
 | --- | --- |
 | Pega | Número inteiro de sementes |
+| Comentário | Texto opcional associado à espiga |
 | Data/hora da coleta | Instante do primeiro salvamento, com segundos e fuso |
 | Data/hora da alteração | Instante da última correção, quando houver |
 
@@ -55,7 +58,7 @@ Exemplo de horário: `01/11/2026 23:14:54 -03:00`. O horário utiliza o relógio
 
 Cada exportação inclui **somente os Lot IDs com contagem salva**, de **todos os dias**, inclusive contagens zero e QR Codes sem cadastro na base. Linhas da base sem coleta não são exportadas. Sem base, os atributos da espiga permanecem vazios, mantendo QR Code, sementes e horários.
 
-Ao atualizar um arquivo existente, o aplicativo exige uma única aba com **Lot ID** e **Pega**, mantém os outros IDs com contagem preenchida e mescla os registros locais. Linhas sem contagem no arquivo de destino são omitidas. Para o mesmo QR Code, a contagem local prevalece, após confirmação. Se detectar uma alteração no arquivo entre a seleção e a confirmação, pede uma nova seleção. A base de entrada não é utilizada como destino de atualização.
+Ao atualizar um arquivo existente, o aplicativo exige uma única aba com **Lot ID** e **Pega**, mantém os outros IDs com contagem preenchida e mescla os registros locais. Linhas sem contagem no arquivo de destino são omitidas. Para o mesmo QR Code, a contagem e o comentário locais prevalecem, após confirmação. Se detectar uma alteração no arquivo entre a seleção e a confirmação, pede uma nova seleção. A base de entrada não é utilizada como destino de atualização.
 
 O arquivo de saída é uma tabela de valores com cabeçalho fixo e filtro. A atualização regrava essa tabela: fórmulas, gráficos e formatação personalizada do arquivo de destino não são preservados. Use **Salvar novo arquivo** para manter o original.
 

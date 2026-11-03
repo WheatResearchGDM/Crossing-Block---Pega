@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 /** A single worksheet, preserving source columns, blank values and numeric/date types. */
 public final class Workbook {
-    public static final String ID="Lot ID", SEEDS="Pega", TIME="Data/hora da coleta", UPDATED="Data/hora da alteração";
+    public static final String ID="Lot ID", SEEDS="Pega", TIME="Data/hora da coleta", UPDATED="Data/hora da alteração", COMMENT="Comentário";
     public static final List<String> STANDARD = Arrays.asList(ID,"Lot_name","Female origin","Male origin","Sentido","Emasculation date","Emasculator1","Pollination date","Pollinator");
     public static final ZoneId ZONE=ZoneId.of("America/Sao_Paulo");
     public static final class Cell {
@@ -44,7 +44,7 @@ public final class Workbook {
         if(existing!=null)for(String h:existing.headers)addHeader(out,h);
         if(base!=null)for(String h:base.headers)addHeader(out,h);
         if(out.headers.isEmpty())out.headers.addAll(STANDARD);
-        addHeader(out,ID);addHeader(out,SEEDS);addHeader(out,TIME);addHeader(out,UPDATED);
+        addHeader(out,ID);addHeader(out,SEEDS);addHeader(out,COMMENT);addHeader(out,TIME);addHeader(out,UPDATED);
         if(existing!=null)for(String qr:existing.rows.keySet()){
             String saved=existing.get(qr,SEEDS).trim();
             if(saved.isEmpty())continue;
@@ -62,6 +62,7 @@ public final class Workbook {
             for(Map.Entry<String,Cell> attr:r.attributes.entrySet()){addHeader(out,attr.getKey());row.put(out.headers.get(out.column(attr.getKey())),attr.getValue());}
             row.put(out.headers.get(out.column(ID)),Cell.text(r.qr));
             row.put(out.headers.get(out.column(SEEDS)),new Cell(Integer.toString(r.seeds),true,false));
+            row.put(out.headers.get(out.column(COMMENT)),Cell.text(r.comment));
             row.put(out.headers.get(out.column(TIME)),Cell.text(formatInstant(r.collectedAt)));
             row.put(out.headers.get(out.column(UPDATED)),Cell.text(r.updatedAt.equals(r.collectedAt)?"":formatInstant(r.updatedAt)));
         }

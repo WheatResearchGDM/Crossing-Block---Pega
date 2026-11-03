@@ -65,6 +65,28 @@ public class CaptureLayoutTest {
         }
     }
     @Test public void systemInsetsLeaveAllControlsInsideUsableWindow(){viewport.setPadding(0,28,0,24);layout(360,640);allControlsVisible();}
+    @Test public void cameraIsSquareAndTabletUsesFullWidthAndLowerArea(){
+        for(int[] size:new int[][]{{360,640},{720,1100},{800,1280},{1280,800}}){
+            layout(size[0],size[1]);View camera=null;EntryPanel entry=null;
+            for(View v:descendants(viewport)){if("Imagem quadrada da câmera".contentEquals(v.getContentDescription()==null?"":v.getContentDescription()))camera=v;if(v instanceof EntryPanel)entry=(EntryPanel)v;}
+            assertNotNull(camera);assertNotNull(entry);assertEquals(camera.getWidth(),camera.getHeight());
+            assertEquals(size[0],viewport.getChildAt(0).getWidth());assertTrue("Keypad reaches the lower screen",entry.getBottom()>size[1]*.94f);
+            if(size[0]==800){assertTrue("Camera is larger on tablet",camera.getWidth()>250);assertTrue("Entry uses portrait tablet width",entry.getWidth()>size[0]*.94f);}
+        }
+    }
+    @Test public void commentDraftLoadsForQrAndSavesWithItsCount()throws Exception{
+        RecordStore store=new RecordStore(activity);
+        try{
+            store.clear();store.save("a",4,null,"Comentário anterior");store.save("b",8,null,"Comentário B");ReflectionHelpers.setField(activity,"store",store);
+            Method accept=MainActivity.class.getDeclaredMethod("acceptQr",String.class);accept.setAccessible(true);accept.invoke(activity,"a");
+            TextView box=ReflectionHelpers.getField(activity,"commentPreview");assertEquals("Comentário anterior",box.getText().toString());
+            box.performClick();android.app.AlertDialog editor=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();
+            EditText input=ReflectionHelpers.getField(activity,"activeCommentEditor");input.setText("Comentário editado");editor.getButton(android.app.AlertDialog.BUTTON_POSITIVE).performClick();org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            Method save=MainActivity.class.getDeclaredMethod("save");save.setAccessible(true);save.invoke(activity);
+            assertEquals("Comentário editado",store.find("a").comment);assertEquals("",ReflectionHelpers.getField(activity,"commentDraft"));assertEquals("Comentário B",store.find("b").comment);
+            accept.invoke(activity,"b");assertEquals("Comentário B",box.getText().toString());layout(800,1280);allControlsVisible();
+        }finally{store.close();}
+    }
     @Test public void collectedQrWarningIsRedInsideEarAndStaysWhileEditing()throws Exception{
         RecordStore store=new RecordStore(activity);
         try{
