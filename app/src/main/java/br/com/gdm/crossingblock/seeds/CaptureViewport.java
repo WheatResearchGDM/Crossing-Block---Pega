@@ -46,9 +46,9 @@ public final class CaptureViewport extends ViewGroup {
     @Override protected void onLayout(boolean changed,int l,int t,int r,int b){
         int x=getPaddingLeft(),y=getPaddingTop(),aw=getWidth()-getPaddingLeft()-getPaddingRight();header.layout(x,y,x+aw,y+headerHeight);
         x+=pad;y+=headerHeight+pad;summary.layout(x,y,x+summary.getMeasuredWidth(),y+summaryHeight);
-        camera.layout(x,topY,x+leftWidth,topY+camera.getMeasuredHeight());details.layout(x+leftWidth+gap,topY,x+leftWidth+gap+rightWidth,topY+details.getMeasuredHeight());
-        if(columns){int ex=x+leftWidth+gap+rightWidth+gap;entry.layout(ex,topY,ex+entry.getMeasuredWidth(),topY+mainHeight);}
-        else{int ey=topY+upperHeight+gap;entry.layout(x,ey,x+entry.getMeasuredWidth(),ey+entry.getMeasuredHeight());}
+        details.layout(x,topY,x+rightWidth,topY+details.getMeasuredHeight());
+        if(columns){int ex=x+rightWidth+gap;entry.layout(ex,topY,ex+entry.getMeasuredWidth(),topY+mainHeight);int cx=ex+entry.getMeasuredWidth()+gap;camera.layout(cx,topY,cx+leftWidth,topY+camera.getMeasuredHeight());}
+        else{int cx=x+rightWidth+gap;camera.layout(cx,topY,cx+leftWidth,topY+camera.getMeasuredHeight());int ey=topY+upperHeight+gap;entry.layout(x,ey,x+entry.getMeasuredWidth(),ey+entry.getMeasuredHeight());}
     }
     public boolean usesColumns(){return columns;}
     @Override protected void onDraw(Canvas canvas){super.onDraw(canvas);Paint p=new Paint();p.setColor(Color.rgb(9,36,59));canvas.drawRect(0,0,getWidth(),getPaddingTop(),p);canvas.drawRect(0,getHeight()-getPaddingBottom(),getWidth(),getHeight(),p);}

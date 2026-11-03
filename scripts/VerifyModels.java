@@ -11,7 +11,7 @@ public class VerifyModels {
         if(!Arrays.equals(input.parents("303307"),new String[]{"10","6"}))throw new AssertionError("Inverse parents");
         if(!Arrays.equals(input.parents("303283"),new String[]{"3","4"}))throw new AssertionError("Direct parents");
         if(!input.get("303283","Emasculation date").equals("22/10/2026"))throw new AssertionError("Date decoding: "+input.get("303283","Emasculation date"));
-        SeedRecord known=new SeedRecord("303283",0,"2026-11-02T02:14:54Z","2026-11-02T02:14:54Z",input.rows.get("303283"),"Comentário de teste.\nSegunda linha.");
+        SeedRecord known=new SeedRecord("303283",0,"2026-11-02T02:14:54Z","2026-11-02T02:14:54Z",input.rows.get("303283"),"Comentário de teste.\nSegunda linha.","Usuário de teste");
         SeedRecord unknown=new SeedRecord("000999999",99,"2026-11-03T03:00:00Z","2026-11-03T03:00:00Z");
         Workbook out=Workbook.export(input,null,Arrays.asList(known,unknown));
         byte[] bytes=ExcelFile.write(out);Files.write(Path.of(args[2]),bytes);
@@ -20,6 +20,7 @@ public class VerifyModels {
         if(check.rows.containsKey("303284"))throw new AssertionError("Uncollected row was exported");
         if(!check.get("000999999","Female origin").isEmpty())throw new AssertionError("Unknown QR has invented parents");
         if(!check.get("303283",Workbook.COMMENT).equals("Comentário de teste.\nSegunda linha."))throw new AssertionError("Comment round-trip");
+        if(!check.get("303283",Workbook.USER).equals("Usuário de teste"))throw new AssertionError("User round-trip");
         System.out.println("PASS: 2,299 source rows, direct/inverse, dates, typed 0/99, unknown QR, only the 2 collected IDs exported.");
     }
 }

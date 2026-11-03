@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 
 /** A single worksheet, preserving source columns, blank values and numeric/date types. */
 public final class Workbook {
-    public static final String ID="Lot ID", SEEDS="Pega", TIME="Data/hora da coleta", UPDATED="Data/hora da alteração", COMMENT="Comentário";
+    public static final String ID="Lot ID", SEEDS="Pega", TIME="Data/hora da coleta", UPDATED="Data/hora da alteração", COMMENT="Observação", USER="Usuário";
     public static final List<String> STANDARD = Arrays.asList(ID,"Lot_name","Female origin","Male origin","Sentido","Emasculation date","Emasculator1","Pollination date","Pollinator");
     public static final ZoneId ZONE=ZoneId.of("America/Sao_Paulo");
     public static final class Cell {
@@ -30,21 +30,22 @@ public final class Workbook {
         if(direction.equalsIgnoreCase("Inverso")){String swap=mother;mother=father;father=swap;}
         return new String[]{mother,father};
     }
-    private static void addHeader(Workbook out,String h){if(out.column(h)<0)out.headers.add(h);}
+    private static String canonical(String h){return h.equalsIgnoreCase("Comentário")?COMMENT:h;}
+    private static void addHeader(Workbook out,String h){h=canonical(h);if(out.column(h)<0)out.headers.add(h);}
     private static void copyRow(Workbook out,String qr,Map<String,Cell> values){
         if(values==null)return;
         LinkedHashMap<String,Cell> dst=out.rows.computeIfAbsent(qr,key->new LinkedHashMap<>());
         for(Map.Entry<String,Cell> c:values.entrySet()){
-            addHeader(out,c.getKey());String h=out.headers.get(out.column(c.getKey()));
+            addHeader(out,c.getKey());String h=out.headers.get(out.column(canonical(c.getKey())));
             if(!dst.containsKey(h)||dst.get(h).value.isEmpty())dst.put(h,c.getValue());
         }
     }
     public static Workbook export(Workbook base, Workbook existing,List<SeedRecord> records){
         Workbook out=new Workbook();
+        out.headers.addAll(Arrays.asList(ID,"Lot_name",SEEDS,COMMENT,USER,TIME,UPDATED));
         if(existing!=null)for(String h:existing.headers)addHeader(out,h);
         if(base!=null)for(String h:base.headers)addHeader(out,h);
-        if(out.headers.isEmpty())out.headers.addAll(STANDARD);
-        addHeader(out,ID);addHeader(out,SEEDS);addHeader(out,COMMENT);addHeader(out,TIME);addHeader(out,UPDATED);
+        for(String h:STANDARD)addHeader(out,h);
         if(existing!=null)for(String qr:existing.rows.keySet()){
             String saved=existing.get(qr,SEEDS).trim();
             if(saved.isEmpty())continue;
@@ -59,10 +60,11 @@ public final class Workbook {
             if(existing!=null)copyRow(out,r.qr,existing.rows.get(r.qr));
             if(base!=null)copyRow(out,r.qr,base.rows.get(r.qr));
             LinkedHashMap<String,Cell> row=out.rows.computeIfAbsent(r.qr,key->new LinkedHashMap<>());
-            for(Map.Entry<String,Cell> attr:r.attributes.entrySet()){addHeader(out,attr.getKey());row.put(out.headers.get(out.column(attr.getKey())),attr.getValue());}
+            for(Map.Entry<String,Cell> attr:r.attributes.entrySet()){addHeader(out,attr.getKey());row.put(out.headers.get(out.column(canonical(attr.getKey()))),attr.getValue());}
             row.put(out.headers.get(out.column(ID)),Cell.text(r.qr));
             row.put(out.headers.get(out.column(SEEDS)),new Cell(Integer.toString(r.seeds),true,false));
             row.put(out.headers.get(out.column(COMMENT)),Cell.text(r.comment));
+            row.put(out.headers.get(out.column(USER)),Cell.text(r.user));
             row.put(out.headers.get(out.column(TIME)),Cell.text(formatInstant(r.collectedAt)));
             row.put(out.headers.get(out.column(UPDATED)),Cell.text(r.updatedAt.equals(r.collectedAt)?"":formatInstant(r.updatedAt)));
         }

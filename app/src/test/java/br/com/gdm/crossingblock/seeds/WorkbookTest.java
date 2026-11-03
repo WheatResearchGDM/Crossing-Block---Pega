@@ -51,4 +51,8 @@ public class WorkbookTest {
         assertEquals(note,loaded.get("0001",Workbook.COMMENT));assertEquals("Outra observação",loaded.get("0002",Workbook.COMMENT));assertFalse(loaded.rows.get("0001").get(Workbook.COMMENT).number);assertEquals(2,loaded.rows.size());
         Workbook merged=Workbook.export(null,loaded,List.of(new SeedRecord("0001",2,at,at,Map.of(),"")));assertEquals("",merged.get("0001",Workbook.COMMENT));assertEquals("Outra observação",merged.get("0002",Workbook.COMMENT));
     }
+    @Test public void userAndObservationRoundTripAndOldCommentHeaderMerges()throws Exception{
+        String at="2026-11-02T03:00:00Z";Workbook old=base();old.headers.addAll(List.of(Workbook.SEEDS,"Comentário"));row(old,"old","3","4","");old.rows.get("old").put(Workbook.SEEDS,Workbook.Cell.text("0"));old.rows.get("old").put("Comentário",Workbook.Cell.text("Nota legada"));
+        Workbook out=Workbook.export(null,old,List.of(new SeedRecord("new",12,at,at,Map.of(),"Observação atual","Natália")));Workbook read=ExcelFile.read(new ByteArrayInputStream(ExcelFile.write(out)));assertEquals("Natália",read.get("new",Workbook.USER));assertEquals("Observação atual",read.get("new",Workbook.COMMENT));assertEquals("Nota legada",read.get("old",Workbook.COMMENT));assertEquals(-1,read.column("Comentário"));assertEquals("",read.get("old",Workbook.USER));assertEquals(List.of(Workbook.ID,"Lot_name",Workbook.SEEDS,Workbook.COMMENT,Workbook.USER,Workbook.TIME,Workbook.UPDATED),read.headers.subList(0,7));assertEquals(2,read.rows.size());
+    }
 }

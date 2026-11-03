@@ -25,6 +25,7 @@ public class CaptureLayoutTest {
     @Before public void createCaptureSurface()throws Exception {
         ActivityController<MainActivity> controller=Robolectric.buildActivity(MainActivity.class);
         activity=controller.get();activity.setTheme(br.com.gdm.crossingblock.seeds.R.style.AppTheme);
+        activity.getSharedPreferences("collectors",0).edit().clear().commit();UserStore users=new UserStore(activity);users.select(users.add("Natália").id);
         Method create=MainActivity.class.getDeclaredMethod("createInterface");create.setAccessible(true);create.invoke(activity);
         viewport=(CaptureViewport)((ViewGroup)activity.findViewById(android.R.id.content)).getChildAt(0);
         Method operation=MainActivity.class.getDeclaredMethod("addOperation",String.class,String.class,String.class);operation.setAccessible(true);
@@ -86,6 +87,25 @@ public class CaptureLayoutTest {
             assertEquals(size[0],viewport.getChildAt(0).getWidth());assertTrue("Keypad reaches the lower screen",entry.getBottom()>size[1]*.94f);
             if(size[0]==800){assertTrue("Camera is larger on tablet",camera.getWidth()>250);assertTrue("Entry uses portrait tablet width",entry.getWidth()>size[0]*.94f);}
         }
+    }
+    @Test public void cameraStaysOnRightAndCountIsCenteredAboveKeypad(){
+        for(int[] size:new int[][]{{360,740},{800,1280},{1280,800}}){layout(size[0],size[1]);SquareCameraPanel camera=null;DetailsPanel details=null;EntryPanel entry=null;for(View v:descendants(viewport)){if(v instanceof SquareCameraPanel)camera=(SquareCameraPanel)v;if(v instanceof DetailsPanel)details=(DetailsPanel)v;if(v instanceof EntryPanel)entry=(EntryPanel)v;}
+            assertNotNull(camera);assertNotNull(details);assertNotNull(entry);assertTrue(camera.getLeft()>details.getRight());if(viewport.usesColumns())assertTrue(camera.getLeft()>entry.getRight());
+            View box=(View)count().getParent(),row=(View)box.getParent();assertEquals(row.getWidth()/2f,box.getLeft()+box.getWidth()/2f,1f);assertEquals(2,((TextView)ReflectionHelpers.getField(activity,"commentPreview")).getMaxLines());
+            if(size[0]==800){TextView note=ReflectionHelpers.getField(activity,"commentPreview");LinearLayout info=ReflectionHelpers.getField(activity,"ear");assertTrue(info.getHeight()>note.getHeight()*2);}
+            allControlsVisible();
+        }
+    }
+    @Test public void choosingAndEditingUserKeepsDraftAndSavesNameSnapshot()throws Exception{
+        RecordStore store=new RecordStore(activity);try{store.clear();ReflectionHelpers.setField(activity,"store",store);ReflectionHelpers.setField(activity,"currentQr","test-user");ReflectionHelpers.setField(activity,"scanning",false);ReflectionHelpers.setField(activity,"digits","12");ReflectionHelpers.setField(activity,"commentDraft","Nota");
+            Method show=MainActivity.class.getDeclaredMethod("showUsersDialog");show.setAccessible(true);show.invoke(activity);android.app.AlertDialog dialog=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();Button add=null;for(View v:descendants(dialog.getWindow().getDecorView()))if(v instanceof Button&&"Novo usuário".contentEquals(((Button)v).getText()))add=(Button)v;assertNotNull(add);add.performClick();
+            android.app.AlertDialog editor=org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog();EditText name=null;Button submit=null;for(View v:descendants(editor.getWindow().getDecorView())){if(v instanceof EditText)name=(EditText)v;if(v instanceof Button&&"Salvar usuário".contentEquals(((Button)v).getText()))submit=(Button)v;}assertNotNull(name);assertNotNull(submit);name.setText("Carlos");submit.performClick();org.robolectric.shadows.ShadowLooper.idleMainLooper();
+            Button use=null;for(View v:descendants(dialog.getWindow().getDecorView()))if(v instanceof Button&&"Usar selecionado".contentEquals(((Button)v).getText()))use=(Button)v;assertNotNull(use);use.performClick();assertEquals("12",ReflectionHelpers.getField(activity,"digits"));Method save=MainActivity.class.getDeclaredMethod("save");save.setAccessible(true);save.invoke(activity);assertEquals("Carlos",store.find("test-user").user);assertEquals("Nota",store.find("test-user").comment);assertTrue(ReflectionHelpers.getField(activity,"scanning"));
+            UserStore users=ReflectionHelpers.getField(activity,"users");users.rename(users.current().id,"Carlos Silva");assertEquals("Carlos",store.find("test-user").user);
+        }finally{store.close();}
+    }
+    @Test public void missingUserBlocksSaveWithoutLosingCountOrObservation()throws Exception{
+        RecordStore store=new RecordStore(activity);try{store.clear();activity.getSharedPreferences("collectors",0).edit().clear().commit();ReflectionHelpers.setField(activity,"users",new UserStore(activity));ReflectionHelpers.setField(activity,"store",store);ReflectionHelpers.setField(activity,"currentQr","pending");ReflectionHelpers.setField(activity,"scanning",false);ReflectionHelpers.setField(activity,"digits","0");ReflectionHelpers.setField(activity,"commentDraft","Aguardar usuário");Method save=MainActivity.class.getDeclaredMethod("save");save.setAccessible(true);save.invoke(activity);assertTrue(store.all().isEmpty());assertEquals("0",ReflectionHelpers.getField(activity,"digits"));assertEquals("Aguardar usuário",ReflectionHelpers.getField(activity,"commentDraft"));assertTrue(org.robolectric.shadows.ShadowAlertDialog.getLatestAlertDialog().isShowing());}finally{store.close();}
     }
     @Test public void commentDraftLoadsForQrAndSavesWithItsCount()throws Exception{
         RecordStore store=new RecordStore(activity);

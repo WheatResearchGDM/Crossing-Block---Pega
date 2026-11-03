@@ -28,4 +28,7 @@ public class RecordStoreTest {
         store.save("a",1,null,"");assertEquals("",store.find("a").comment);assertEquals(collectedAt,store.find("a").collectedAt);assertEquals("Segunda espiga",store.find("b").comment);assertEquals(2,store.all().size());store.close();
     }
     @Test public void optionalCommentsAndLegacySaveDoNotEraseNotes(){RecordStore store=new RecordStore(context);store.save("a",5,null,"Nota");store.save("a",6,null);store.save("b",0,null);assertEquals("Nota",store.find("a").comment);assertEquals("",store.find("b").comment);store.close();}
+    @Test public void versionTwoUpgradePreservesNotesAndLeavesUnknownUserBlank(){
+        SQLiteDatabase old=context.openOrCreateDatabase("crossing-block.db",0,null);old.execSQL("CREATE TABLE records(qr TEXT PRIMARY KEY,seeds INTEGER,collected_at TEXT,updated_at TEXT,attributes TEXT,comment TEXT)");String at="2026-11-02T03:14:15Z";old.execSQL("INSERT INTO records VALUES(?,?,?,?,?,?)",new Object[]{"0007",0,at,at,"{}","Nota anterior"});old.setVersion(2);old.close();RecordStore store=new RecordStore(context);assertEquals("",store.find("0007").user);assertEquals("Nota anterior",store.find("0007").comment);store.save("0007",2,null,"Nota anterior","Natália");store.close();store=new RecordStore(context);assertEquals("Natália",store.find("0007").user);assertEquals(at,store.find("0007").collectedAt);store.close();
+    }
 }

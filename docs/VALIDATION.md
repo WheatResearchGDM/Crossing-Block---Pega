@@ -1,6 +1,6 @@
-# Verificação da versão 1.0.4
+# Verificação da versão 1.0.5
 
-- `testDebugUnitTest`: 25 testes aprovados — 12 de dados e Excel, 3 de armazenamento/migração e 10 da interface com Robolectric.
+- `testDebugUnitTest`: 32 testes — 13 de dados e Excel, 4 de armazenamento/migração, 2 de usuários e 13 da interface com Robolectric.
 - `lintDebug`: concluído sem erros. Há avisos de internacionalização, versões de dependências e APIs obsoletas.
 - `assembleDebug`: APK gerado e assinado com a chave de desenvolvimento local.
 - `apksigner verify`: assinatura APK v2 válida.
@@ -18,3 +18,7 @@ Os modelos de entrada, os registros utilizados na prévia, ferramentas locais e 
 A migração do banco da versão 1 para a 2 foi testada com registros antigos, incluindo contagem zero, atributos e horários. O campo de comentário é acrescentado sem apagar ou recriar a tabela. A exportação com comentários foi validada por leitor independente, preservando acentos, texto multilinha e a formatação de quebra de linha.
 
 A versão 1.0.4 acrescenta testes de exibição completa dos valores 349, 3499 e 123456 em uma linha. Também verifica 349/7 e o rótulo Reler em telas xhdpi de 738×1600, 640×1280 e 800×1600, sem quebra de linha, reticências ou caracteres cortados.
+
+A versão 1.0.5 verifica câmera à direita, campo de sementes centralizado, observação limitada a duas linhas e caixa de informações ampliada no tablet. O fluxo de usuário cobre cadastro no pop-up, seleção, preservação do rascunho e associação do nome à coleta. Sem usuário selecionado, Salvar abre a escolha sem perder a contagem ou a observação. O cadastro e a escolha persistem após reabrir; nomes vazios, longos e duplicados são recusados.
+
+A migração da versão 2 para a 3 mantém comentários, contagens e horários, deixando o usuário antigo vazio. Os testes da versão 1 também passam pela migração até a versão 3. A exportação preserva o nome salvo na coleta, reconhece a antiga coluna Comentário e a consolida em Observação. Renomear um usuário não modifica registros anteriores. O ensaio dos modelos de 2.299 linhas inclui observação e usuário, mantendo apenas as duas espigas coletadas no resultado.
