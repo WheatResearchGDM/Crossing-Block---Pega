@@ -88,11 +88,11 @@ public class CaptureLayoutTest {
             if(size[0]==800){assertTrue("Camera is larger on tablet",camera.getWidth()>250);assertTrue("Entry uses portrait tablet width",entry.getWidth()>size[0]*.94f);}
         }
     }
-    @Test public void cameraStaysOnRightAndCountIsCenteredAboveKeypad(){
-        for(int[] size:new int[][]{{360,740},{800,1280},{1280,800}}){layout(size[0],size[1]);SquareCameraPanel camera=null;DetailsPanel details=null;EntryPanel entry=null;for(View v:descendants(viewport)){if(v instanceof SquareCameraPanel)camera=(SquareCameraPanel)v;if(v instanceof DetailsPanel)details=(DetailsPanel)v;if(v instanceof EntryPanel)entry=(EntryPanel)v;}
+    @Test public void cameraStaysOnRightAndAnnotationsShareRowWithExternalLabels(){
+        for(int[] size:new int[][]{{320,480},{360,740},{800,1280},{1280,800}}){layout(size[0],size[1]);SquareCameraPanel camera=null;DetailsPanel details=null;EntryPanel entry=null;for(View v:descendants(viewport)){if(v instanceof SquareCameraPanel)camera=(SquareCameraPanel)v;if(v instanceof DetailsPanel)details=(DetailsPanel)v;if(v instanceof EntryPanel)entry=(EntryPanel)v;}
             assertNotNull(camera);assertNotNull(details);assertNotNull(entry);assertTrue(camera.getLeft()>details.getRight());if(viewport.usesColumns())assertTrue(camera.getLeft()>entry.getRight());
-            View box=(View)count().getParent(),row=(View)box.getParent();assertEquals(row.getWidth()/2f,box.getLeft()+box.getWidth()/2f,1f);assertEquals(2,((TextView)ReflectionHelpers.getField(activity,"commentPreview")).getMaxLines());
-            if(size[0]==800){TextView note=ReflectionHelpers.getField(activity,"commentPreview");LinearLayout info=ReflectionHelpers.getField(activity,"ear");assertTrue(info.getHeight()>note.getHeight()*2);}
+            TextView note=ReflectionHelpers.getField(activity,"commentPreview");AnnotationRow row=(AnnotationRow)count().getParent();assertSame(row,note.getParent());assertEquals(count().getTop(),note.getTop());assertEquals(count().getBottom(),note.getBottom());assertTrue(note.getLeft()>count().getRight());assertTrue(row.getChildAt(0).getBottom()<count().getTop());assertTrue(row.getChildAt(2).getBottom()<note.getTop());assertNull(row.getChildAt(0).getBackground());assertNull(row.getChildAt(2).getBackground());assertEquals(2,note.getMaxLines());
+            if(size[0]==800){LinearLayout info=ReflectionHelpers.getField(activity,"ear");assertTrue(info.getHeight()>note.getHeight()*2);TextView m=ReflectionHelpers.getField(activity,"mother");m.setText("349");layout(size[0],size[1]);assertTrue("Larger parent numbers on tablet",m.getTextSize()>30);entireTextFitsOneLine(m,"349");}
             allControlsVisible();
         }
     }

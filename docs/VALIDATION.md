@@ -1,4 +1,4 @@
-# Verificação da versão 1.0.5
+# Verificação da versão 1.0.6
 
 - `testDebugUnitTest`: 32 testes — 13 de dados e Excel, 4 de armazenamento/migração, 2 de usuários e 13 da interface com Robolectric.
 - `lintDebug`: concluído sem erros. Há avisos de internacionalização, versões de dependências e APIs obsoletas.
@@ -22,3 +22,5 @@ A versão 1.0.4 acrescenta testes de exibição completa dos valores 349, 3499 e
 A versão 1.0.5 verifica câmera à direita, campo de sementes centralizado, observação limitada a duas linhas e caixa de informações ampliada no tablet. O fluxo de usuário cobre cadastro no pop-up, seleção, preservação do rascunho e associação do nome à coleta. Sem usuário selecionado, Salvar abre a escolha sem perder a contagem ou a observação. O cadastro e a escolha persistem após reabrir; nomes vazios, longos e duplicados são recusados.
 
 A migração da versão 2 para a 3 mantém comentários, contagens e horários, deixando o usuário antigo vazio. Os testes da versão 1 também passam pela migração até a versão 3. A exportação preserva o nome salvo na coleta, reconhece a antiga coluna Comentário e a consolida em Observação. Renomear um usuário não modifica registros anteriores. O ensaio dos modelos de 2.299 linhas inclui observação e usuário, mantendo apenas as duas espigas coletadas no resultado.
+
+A versão 1.0.6 verifica o alinhamento das caixas de sementes e observação na mesma linha, com igual altura e títulos externos acima dos campos, em celulares e tablets. A caixa de informações ocupa a área liberada pela observação. Os números de mãe e pai têm fonte de referência de 30 sp (antes 24 sp), mantendo o ajuste automático e os testes de números completos e Reler em uma linha.
